@@ -1,10 +1,10 @@
 # Brief overview
-A pipeline for mapping sequencing data to viral genome and visualization of alignments and variants.
-GenMapViz is a bioinformatics pipeline that I use to align sequencing reads (fastq files) to a reference genome, call variants and outpus visual representation of coverage depth and alignments. I made this pipeline with intention of working with viral genomes and is therefore optimized for small genomes. 
+A pipeline for mapping sequencing data to viral genome reference and visualization of depth of coverage.
+GenMapViz is a bioinformatics pipeline that I use to align sequencing reads (fastq files) to a reference genome outpus visual representation of coverage depth. I made this pipeline with intention of working with viral genomes and is therefore optimized for small genomes. 
 
 # Installation 
 
-The pipeline is meant to be used an Unix/Linux operative system.  The pipiline does not need tobe installed  does not need to be installed. All that is needed is to have the main python script and the scripts directory in the samle location.  However, there are several dependancies that need to be pre-installed for it to work. 
+The pipeline is meant to be used an Unix/Linux operative system.  The pipiline does not need tobe installed  does not need to be installed. All that is needed is to have the main python script and the scripts directory in the same location.  However, there are several dependancies that need to be pre-installed for it to work. 
 
 # Dependancies
 
@@ -71,8 +71,8 @@ options:
                         The end of the area to be zoomed. Default: 2/3 of the reference length.
 ```
 
-## More on Usage
+## To do:
 
-*__To be completed__*
-
+* Add variant call option
+* Add variant visualization to the coverage graph
 
