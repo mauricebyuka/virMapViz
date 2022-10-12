@@ -15,7 +15,7 @@ The best way to install most of the tools is to install [anaconda](https://www.a
 * [Python 3.x](https://www.python.org/downloads/)
 * [Biopython](https://biopython.org/wiki/Download)
 
-## Tools for alignment and variant caolling
+## Tools for alignment and variant calling
 
 * [Burrows-Wheeler Aligner (bwa)](http://bio-bwa.sourceforge.net/) : Alignment of sequencing reads to a reference genome.
 * [fastp](https://github.com/OpenGene/fastp) : Quality Control - Trimming out low quality reads and remove adatpers.
