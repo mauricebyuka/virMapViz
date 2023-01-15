@@ -41,6 +41,11 @@ parser.add_argument("-a", "--aligner",
                     help="Short read aligner to be used. options = bwa, bowtie2, bbmap. Default: bwa (bwa mem will be used).",
                     default = "bwa")
 
+parser.add_argument("-d", "--dupl",
+                    help="Indicate whether optical duplicated should be remove or kept. By default, duplicates are removed.",
+                    choices=['remove', 'keep'],
+                    default= 'remove')
+
 parser.add_argument("-t", "--threads",
                     help="Number of threads. Default: 1 or half of available cpus.",
                     type=int,
@@ -59,6 +64,8 @@ parser.add_argument("-ze", "--zoom_end",
                     help="The end of the area to be zoomed. Default: 2/3 of the reference length.",
                     type=int,
                     default=None)
+
+
 
 args = parser.parse_args()
 
@@ -152,13 +159,25 @@ def main():
         outValues.extend([zoomStart, zoomEnd, seqEnd])
 
         # Quality control & Alignement to the reference
-        if qual:
-            trimmed = vz.trimmer()
-            bamFile = vz.mapper(read1=trimmed[0], read2=trimmed[1], mapper=mapTool)
-        elif unpairedReads:
-            bamFile = vz.mapper(read1=unpairedReads, read2='None', mapper=mapTool)
-        else:
-            bamFile = vz.mapper(read1=rawFastq1, read2=rawFastq2, mapper=mapTool)
+
+        duplicateStatus = args.dupl
+        if duplicateStatus == 'remove':
+            if qual:
+                trimmed = vz.trimmer()
+                bamFile = vz.mapper(read1=trimmed[0], read2=trimmed[1], mapper=mapTool, rmdup=True)
+            elif unpairedReads:
+                bamFile = vz.mapper(read1=unpairedReads, read2='None', mapper=mapTool, rmdup=True)
+            else:
+                bamFile = vz.mapper(read1=rawFastq1, read2=rawFastq2, mapper=mapTool, rmdup=True)
+
+        elif  duplicateStatus == 'keep':
+            if qual:
+                trimmed = vz.trimmer()
+                bamFile = vz.mapper(read1=trimmed[0], read2=trimmed[1], mapper=mapTool, rmdup=False)
+            elif unpairedReads:
+                bamFile = vz.mapper(read1=unpairedReads, read2='None', mapper=mapTool, rmdup=False)
+            else:
+                bamFile = vz.mapper(read1=rawFastq1, read2=rawFastq2, mapper=mapTool, rmdup=False)
 
         outValues.append(os.path.abspath(bamFile))
 

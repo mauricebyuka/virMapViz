@@ -159,7 +159,7 @@ class genViz:
                 print(message)
             return [newRead1, newRead2]
 
-    def mapper(self, read1=None, read2=None, mapper='bwa'):
+    def mapper(self, read1=None, read2=None, mapper='bwa', rmdup=True):
         with open (self.log, 'a') as log:
             message1 = '\n====== Aligning reads to the reference genome ======\n'
             message2 = f'\t---> Reference length: {self.refLen:,}'
@@ -272,7 +272,14 @@ class genViz:
                 message1 = '\n====== ALIGNMENT FILE EXISTS ALREADY ======== SKIPPING!!!'
                 log.write(message1 + '\n')
                 print(message1)
-            
+ 
+            if rmdup == False:
+                dupInfo = '\nThe option to remove duplicates was turned off. The raw alignment file will be used. \n'
+                log.write(dupInfo + '\n')
+                print(dupInfo)
+                
+                outBam = rawBam
+
             outinfo = ['\nDone with mapping:\n', f'\t---> Alignment file: {outBam}']
 
             for info in outinfo:
