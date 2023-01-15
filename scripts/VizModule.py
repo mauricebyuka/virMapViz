@@ -62,12 +62,13 @@ def check_dependancy(programs=[], rScript='', logfile=None):
 
 
 class genViz:
-    def __init__(self, outDir=None, outFileBase=None, fastq1=None,
-                 fastq2=None, ref=None, gff=None, cpus=2, zs=None, ze=None, logfile=None):
+    def __init__(self, outDir='None', outFileBase='None', fastq1='None',
+                 fastq2='None', unpairedFastq='None', ref='None', gff='None', cpus=2, zs='None', ze='None', logfile='None'):
         self.outDir = outDir
         self.outFileBase = outFileBase
         self.fastq1 = fastq1
         self.fastq2 = fastq2
+        self.unpairedFastq = unpairedFastq
         self.ref = ref
         self.gff = gff
         self.cpus = cpus
@@ -79,18 +80,34 @@ class genViz:
 
     def __str__(self):
         
+        # params = [
+        # f'\nParameters to be used:\n',
+        # f' Basename: {self.outFileBase}',
+        # f' OutDir: {os.path.abspath(self.outDir)}',
+        # f' First read file: {os.path.abspath(self.fastq1)}',
+        # f' Second read file: {os.path.abspath(self.fastq2)}',
+        # f' Unpared reads file: {os.path.abspath(self.unpairedFastq)}',
+        # f' Reference genome: {os.path.abspath(self.ref)}',
+        # f' Interval file: {os.path.abspath(self.gff)}',
+        # f' Zoom will start at: {self.zs}',
+        # f' Zoom will end at: {self.ze}',
+        # f' Threads to be used: {self.cpus}'
+        # ]
+
         params = [
         f'\nParameters to be used:\n',
         f' Basename: {self.outFileBase}',
         f' OutDir: {os.path.abspath(self.outDir)}',
-        f' First read file: {os.path.abspath(self.fastq1)}',
-        f' Second read file: {os.path.abspath(self.fastq2)}',
+        f' First read file: {self.fastq1}',
+        f' Second read file: {self.fastq2}',
+        f' Unpared reads file: {self.unpairedFastq}',
         f' Reference genome: {os.path.abspath(self.ref)}',
         f' Interval file: {os.path.abspath(self.gff)}',
         f' Zoom will start at: {self.zs}',
         f' Zoom will end at: {self.ze}',
         f' Threads to be used: {self.cpus}'
         ]
+
         with open (self.log, 'a') as log:
             for param in params: 
                 log.write(param + '\n')
@@ -106,11 +123,19 @@ class genViz:
             newReadsFolder = os.path.join(self.outDir, 'trimmed_reads')
             if not os.path.exists(newReadsFolder):
                 os.makedirs(newReadsFolder)
-            base1 = os.path.basename(self.fastq1)
-            base2 = os.path.basename(self.fastq2)
-            newRead1 = os.path.join(newReadsFolder, f'trimmed_{base1}')
-            newRead2 = os.path.join(newReadsFolder, f'trimmed_{base2}')
-            cmd = f'fastp -i {self.fastq1} -I {self.fastq2} -o {newRead1} -O {newRead2} -w {self.cpus} -j /dev/null -h /dev/null -q 20 -u 40 -l 15 -z 4'
+            
+            if self.unpairedFastq != 'None':
+                base = os.path.basename(self.unpairedFastq)
+                newRead = os.path.join(newReadsFolder, f'trimmed_{base}')
+                cmd = f'fastp -i {self.unpairedFastq} -o {newRead} -w {self.cpus} -j /dev/null -h /dev/null -q 20 -u 40 -l 15 -z 4'
+                newRead1 = newRead
+                newRead2 = 'None'
+            else:
+                base1 = os.path.basename(self.fastq1)
+                base2 = os.path.basename(self.fastq2)
+                newRead1 = os.path.join(newReadsFolder, f'trimmed_{base1}')
+                newRead2 = os.path.join(newReadsFolder, f'trimmed_{base2}')
+                cmd = f'fastp -i {self.fastq1} -I {self.fastq2} -o {newRead1} -O {newRead2} -w {self.cpus} -j /dev/null -h /dev/null -q 20 -u 40 -l 15 -z 4'
             if not os.path.exists(newRead1) and not os.path.exists(newRead2):
                 execute = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 for line in execute.stdout.decode('utf-8').strip().split('\n'):
@@ -145,9 +170,14 @@ class genViz:
             rawBam = os.path.join(self.outDir, self.outFileBase + '_raw.bam')
             outBam = os.path.join(self.outDir, self.outFileBase + '_dedupped.bam')  # PCR duplicates removed
             
-            if mapper == 'bwa':
+            if mapper == 'bwa':  
                 cmd1 = f'bwa index {self.ref}'
-                cmd2 = f'bwa mem -t {self.cpus} {self.ref} {read1} {read2} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
+                if self.unpairedFastq != 'None':
+                    cmd2 = f'bwa mem -t {self.cpus} {self.ref} {read1} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
+                else:
+                    cmd2 = f'bwa mem -t {self.cpus} {self.ref} {read1} {read2} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
+                
+                
 
                 if not os.path.exists(self.ref + '.pac'):
                     message = '\t---> Indexing the reference genome'
@@ -164,7 +194,10 @@ class genViz:
 
             elif mapper == 'bowtie2':
                 cmd1 = f'bowtie2-build {self.ref} {self.ref}'
-                cmd2 = f'bowtie2 -p {self.cpus} -x {self.ref} -1 {read1} -2 {read2} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
+                if self.unpairedFastq != 'None':
+                    cmd2 = f'bowtie2 -p {self.cpus} -x {self.ref} -U {read1} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
+                else:
+                    cmd2 = f'bowtie2 -p {self.cpus} -x {self.ref} -1 {read1} -2 {read2} | samtools view -b | samtools sort -@{self.cpus} > {rawBam}'
 
                 if not os.path.exists(self.ref + '.1.bt2'):
                     message = '\t---> Indexing the reference genome'
@@ -181,7 +214,10 @@ class genViz:
 
             elif mapper == 'bbmap.sh':
                 rawSam = os.path.join(self.outDir, self.outFileBase + '_raw.sam')
-                cmd2a = f'bbmap.sh threads={self.cpus} ref={self.ref} in={read1} in2={read2} out={rawSam} nodisk'
+                if self.unpairedFastq != None:
+                    cmd2a = f'bbmap.sh threads={self.cpus} ref={self.ref} in={read1} out={rawSam} nodisk'
+                else:
+                    cmd2a = f'bbmap.sh threads={self.cpus} ref={self.ref} in={read1} in2={read2} out={rawSam} nodisk'
                 cmd2b = f'samtools view -b {rawSam} | samtools sort -@{self.cpus} > {rawBam}'
 
             cmd3 = f'samtools rmdup {rawBam} {outBam}'

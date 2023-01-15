@@ -20,11 +20,13 @@ parser.add_argument("-v", "--virus",
                     help="Name of the virus",
                     default='Some Virus')
 parser.add_argument("-1", "--fastq1",
-                    help="First file of raw reads.",
+                    help="First pair of raw reads.",
                     default=None)
 parser.add_argument("-2", "--fastq2",
-                    help="Second file of raw reads.",
+                    help="Second pair of raw reads.",
                     default=None)
+parser.add_argument("-u", "--unpaired",
+                    help="Unpaired reads")
 parser.add_argument("-r", "--refFile",
                     help="Path to the reference genome file (in fasta format).",
                     default=None)
@@ -106,8 +108,15 @@ def main():
         gffFile = args.gff
         outValues.append(os.path.abspath(gffFile))
 
-        rawFastq1 = args.fastq1
-        rawFastq2 = args.fastq2
+        unpairedReads = args.unpaired
+        if unpairedReads:
+            rawFastq1 = 'None'
+            rawFastq2 = 'None'
+        else:
+            rawFastq1 = args.fastq1
+            rawFastq2 = args.fastq2
+            unpairedReads = 'None'
+        
 
         # Set cpus to be used
         cpus = args.threads
@@ -135,7 +144,7 @@ def main():
 
         # Show parameters to be used
         vz = VizModule.genViz(outDir=resultsFolder, outFileBase=sampleName,
-                              fastq1=rawFastq1, fastq2=rawFastq2, ref=refFasta,
+                              fastq1=rawFastq1, fastq2=rawFastq2, unpairedFastq=unpairedReads, ref=refFasta,
                               gff=gffFile, cpus=cpusUsed, zs=zoomStart, ze=zoomEnd, logfile=logFile)
         print(vz)
 
@@ -146,6 +155,8 @@ def main():
         if qual:
             trimmed = vz.trimmer()
             bamFile = vz.mapper(read1=trimmed[0], read2=trimmed[1], mapper=mapTool)
+        elif unpairedReads:
+            bamFile = vz.mapper(read1=unpairedReads, read2='None', mapper=mapTool)
         else:
             bamFile = vz.mapper(read1=rawFastq1, read2=rawFastq2, mapper=mapTool)
 
