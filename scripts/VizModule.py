@@ -142,7 +142,7 @@ class genViz:
                     log.write(line +'\n')
 
                 if execute.returncode != 0:
-                    print("Failed to trimming reads for quality. Check the log file for more details.")
+                    print("\nFailed to trim reads for quality with fastp. Check the log file for more details.\n")
                     sys.exit()
 
             else:
@@ -189,7 +189,7 @@ class genViz:
                         log.write(line + '\n')
 
                     if execute.returncode != 0:
-                        print("Failed to index the reference. Check the log file for more details.")
+                        print("\nFailed to index the reference. Check the log file for more details.\n")
                         sys.exit()
 
             elif mapper == 'bowtie2':
@@ -209,7 +209,7 @@ class genViz:
                         log.write(line + '\n')
                         
                     if execute.returncode != 0:
-                        print("Failed to index the reference. Check the log file for more details.")
+                        print("\nFailed to index the reference. Check the log file for more details.\n")
                         sys.exit()
 
             elif mapper == 'bbmap.sh':
@@ -235,7 +235,7 @@ class genViz:
                         log.write(line + '\n')
 
                     if execute2a.returncode != 0:
-                        print("bbmap failed. Check the log file for more details.")
+                        print("\nbbmap failed. Check the log file for more details.\n")
                         sys.exit()
 
                     execute2b = subprocess.run(cmd2b, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -243,7 +243,7 @@ class genViz:
                         log.write(line + '\n')
 
                     if execute2b.returncode != 0:
-                        print("Samtools failed. Check the log file for more details.")
+                        print("\nSamtools failed. Check the log file for more details.\n")
                         sys.exit()
                     os.remove(rawSam)
                 else:
@@ -253,7 +253,7 @@ class genViz:
                         log.write(line + '\n')
 
                     if execute2.returncode != 0:
-                        print(f"{mapper} failed. Check the log file for more details.")
+                        print(f"\n{mapper} failed. Check the log file for more details.\n")
                         sys.exit()
 
                 message2 = '\t---> Removing PCR and optical duplicates'
@@ -265,7 +265,7 @@ class genViz:
                     log.write(line + '\n')
 
                 if execute3.returncode != 0:
-                    print("Samtools failed. Check the log file for more details.")
+                    print("\nSamtools failed. Check the log file for more details.\n")
                     sys.exit()
 
             else:
@@ -304,7 +304,7 @@ class genViz:
                         log.write(line + '\n')
 
                     if execute.returncode != 0:
-                        print("Failed to make the coverage file from thre bam file. Check the log file for more details.")
+                        print("\nFailed to make the coverage file from thre bam file. Check the log file for more details.\n")
                         sys.exit()
             else:
                 message = '\n====== BEDGRAPH FILE EXISTS ALREADY ======== SKIPPING!!!\n'
@@ -341,7 +341,7 @@ class genViz:
                 log.write(line + '\n')
 
             if execute.returncode != 0:
-                print("Failed to produce the coverage images. Check the log file for more details.")
+                print("\nFailed to produce the coverage images. Check the log file for more details.\n")
                 sys.exit()
             else:
                 message = 'The following alignment graphs were generated:\n'
